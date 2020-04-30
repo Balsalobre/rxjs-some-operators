@@ -13,9 +13,10 @@ export class AppComponent implements OnInit {
 
     const contador = interval(1000);
 
-    contador.subscribe({
-      next: (n) => console.log(`Llevamos ${n} segundos...`),
-      error: e => console.error(e)
-    });
+    contador.subscribe((n) => console.log(`Llevamos ${n} segundos...`));
+
+    const trigger = timer(2000);
+
+    trigger.subscribe(() => console.log('Triggered 2 seg...'));
   }
 }
