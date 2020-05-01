@@ -1,32 +1,28 @@
-import { Component, OnInit, Renderer2, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
-import { fromEvent } from 'rxjs';
+import { Component, OnInit } from '@angular/core';
+import { pipe, of } from 'rxjs';
+import { map, filter} from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit, AfterViewInit {
+export class AppComponent implements OnInit{
 
   title = 'angular-rxjs';
 
-  @ViewChild('myElement') myElement: ElementRef;
-
-  constructor(private renderer: Renderer2) {
+  constructor() {
   }
 
   ngOnInit(): void {
+    const numns = of(1, 2, 4, 5);
 
-    // la potencia que tiene esto es que nos podemos "desuscribir" del observable cuando queramos
-    const el = document.getElementById('element');
-    const mouseMove = fromEvent(el, 'mousemove');
-    mouseMove.subscribe((e: MouseEvent) => console.log(`Coordenadas: x: ${e.clientX}, y: ${e.clientY}`));
-  }
+    const alCuadrado = pipe(
+      filter((n: number) => n % 2 === 0),
+      map(n => n * n),
+    );
 
-  ngAfterViewInit(): void {
-    console.log('>>>>', this.myElement);
-    this.renderer.listen(this.myElement.nativeElement, 'click', (event: MouseEvent) => {
-      console.log('CLICK', event);
-    });
+    const cuadrado = alCuadrado(numns);
+    cuadrado.subscribe(x => console.log(x));
   }
 }
