@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { fromEvent, Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { timer, Observable } from 'rxjs';
+import { tap, mapTo, share } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -16,15 +16,24 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const el = document.getElementById('element');
-    const clicks: Observable<Event> = fromEvent(el, 'click');
+    const time = timer(3000);
 
-    const positions = clicks.pipe(
-      tap(
-        event => console.log(event),
-        error => console.error(error)
-      )
+    const observable = time.pipe(
+      tap(() => console.log('Tap On')),
+      mapTo('END Observable')
     );
-    positions.subscribe();
+
+    const subscription01 = observable.subscribe(x => console.log(x));
+    const subscription02 = observable.subscribe(x => console.log(x));
+
+    const shareObservable = observable.pipe(share());
+
+    const subscription03 = shareObservable.subscribe(x => console.log(x));
+    const subscription04 = shareObservable.subscribe(x => console.log(x));
+
+    /** Tenemos un observable con una sola parte "observable" la de tap
+     *  si se van a suscribir varias variables a ese observable, nos podemos
+     *  asegurar de que solo dispare una vez la parte observada en este caso tap.
+     */
   }
 }
