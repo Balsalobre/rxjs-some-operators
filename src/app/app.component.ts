@@ -1,5 +1,5 @@
 import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
-import { interval, fromEvent, merge, empty, Subscription, of } from 'rxjs';
+import { interval, fromEvent, merge, empty, Subscription, of, Observable } from 'rxjs';
 import { switchMap, scan, takeWhile, startWith, mapTo } from 'rxjs/operators';
 
 @Component({
@@ -17,6 +17,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   title = 'angular-rxjs';
   private subscription: Subscription;
+  emptyObs: Observable<number>;
 
   constructor() {
   }
@@ -33,6 +34,11 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     // SEGUNDO EJEMPLO
+
+    const emptyObs: Observable<number> = new Observable(subcriber => {
+      subcriber.next();
+    });
+
     const obsInterval = interval(1000).pipe(mapTo(-1));
     const pause = fromEvent(this.pauseButton.nativeElement, 'click').pipe(mapTo(false));
     const resume = fromEvent(this.resumeButton.nativeElement, 'click').pipe(mapTo(true));
@@ -41,7 +47,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       // forzamos que empieze con un valor.
       startWith(true),
       // si el valor el verdadero ejecutamos de nuevo el observable si no ponemos un observable vacío.
-      switchMap(val => (val ? obsInterval : of<number>() )),
+      switchMap(val => (val ? obsInterval : emptyObs )),
       // usamos scan para lanzar una función de acumulardor.
       scan((acc, curr) => (curr ? curr + acc : acc), 33),
       takeWhile(v => v >= 0)
