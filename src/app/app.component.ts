@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { timer, Observable } from 'rxjs';
-import { tap, mapTo, share } from 'rxjs/operators';
+import { concat, interval, range } from 'rxjs';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -11,29 +11,19 @@ export class AppComponent implements OnInit {
 
   title = 'angular-rxjs';
 
-
   constructor() {
   }
 
   ngOnInit(): void {
-    const time = timer(3000);
+    // Este observable se va a disparar tan solo 4 veces en los 4 segundos que dura.
+    const timer = interval(1000).pipe(take(4));
 
-    const observable = time.pipe(
-      tap(() => console.log('Tap On')),
-      mapTo('END Observable')
-    );
+    // Este observable cuenta.
+    const rango = range(1, 10);
 
-    const subscription01 = observable.subscribe(x => console.log(x));
-    const subscription02 = observable.subscribe(x => console.log(x));
+    // Une streams de datos de un observable a otro.
+    const result = concat(timer, rango);
 
-    const shareObservable = observable.pipe(share());
-
-    const subscription03 = shareObservable.subscribe(x => console.log(x));
-    const subscription04 = shareObservable.subscribe(x => console.log(x));
-
-    /** Tenemos un observable con una sola parte "observable" la de tap
-     *  si se van a suscribir varias variables a ese observable, nos podemos
-     *  asegurar de que solo dispare una vez la parte observada en este caso tap.
-     */
+    result.subscribe(x => console.log(x));
   }
 }
