@@ -7,8 +7,15 @@
   background-color: lightgray;
   height: 800px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+
+  .button-wrapper {
+    p {
+      text-align: center;
+    }
+  }
 
   .element {
     text-align: center;
