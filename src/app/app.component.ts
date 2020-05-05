@@ -1,59 +1,38 @@
-import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
-import { interval, fromEvent, merge, empty, Subscription, of, Observable } from 'rxjs';
-import { switchMap, scan, takeWhile, startWith, mapTo } from 'rxjs/operators';
+import { Component, OnInit } from '@angular/core';
+import { forkJoin, of, interval, Observable } from 'rxjs';
+import { delay, take } from 'rxjs/operators';
+import { ajax } from 'rxjs/ajax';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit, AfterViewInit {
+export class AppComponent implements OnInit {
 
-  // @ViewChild('remaining') remainingLabel: ElementRef;
-  @ViewChild('pause') pauseButton: ElementRef;
-  @ViewChild('resume') resumeButton: ElementRef;
-
-  remainingLabel = 33;
-
-  title = 'angular-rxjs';
-  private subscription: Subscription;
-  emptyObs: Observable<number>;
-
-  constructor() {
-  }
+  constructor() { }
 
   ngOnInit(): void {
-  // PRIMER EJEMPLO
-  //   const el = document.getElementById('element');
-  //   const obs = fromEvent(el, 'click').pipe(
-  //     switchMap(() => interval(1000))
-  //   );
 
-  //   obs.subscribe(console.log);
-  }
+    // Resuelve los valores en el orden en el cual se van emitiendo en el stream.
+    const fork = forkJoin([
+      of('Hola'),
+      of('¿Qué tal estamos?').pipe(delay(500)),
+      interval(2000).pipe(take(3)),
+      interval(1000).pipe(take(2))
+    ]);
 
-  ngAfterViewInit(): void {
-    // SEGUNDO EJEMPLO
+    fork.subscribe(console.log);
 
-    const emptyObs: Observable<number> = new Observable(subcriber => {
-      subcriber.next();
-    });
-
-    // Cada segundo envía un valor de menos 1
-    const obsInterval = interval(1000).pipe(mapTo(-1));
-    const pause = fromEvent(this.pauseButton.nativeElement, 'click').pipe(mapTo(false));
-    const resume = fromEvent(this.resumeButton.nativeElement, 'click').pipe(mapTo(true));
-
-    const timer = merge(pause, resume).pipe(
-      // forzamos que empieze con un valor.
-      startWith(true),
-      // si el valor el verdadero ejecutamos de nuevo el observable si no ponemos un observable vacío.
-      switchMap(val => (val ? obsInterval : emptyObs )),
-      // usamos scan para lanzar una función de acumulardor.
-      scan((acc, curr) => (curr ? curr + acc : acc), 33),
-      takeWhile(v => v >= 0)
+    // ForkJoin Puede servirnos para componer un diccionario de recursos.
+    const src = forkJoin(
+      {
+        google: ajax.getJSON('https://api.github.com/users/google'),
+        microsoft: ajax.getJSON('https://api.github.com/users/microsoft'),
+        balsalobre: ajax.getJSON('https://api.github.com/users/balsalobre'),
+      }
     );
 
-    timer.subscribe(x => this.remainingLabel = x);
+    src.subscribe(console.log);
   }
 }
