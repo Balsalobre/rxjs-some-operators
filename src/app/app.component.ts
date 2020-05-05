@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { forkJoin, of, interval, Observable } from 'rxjs';
-import { delay, take } from 'rxjs/operators';
-import { ajax } from 'rxjs/ajax';
+import { of } from 'rxjs';
+import { concatMap, delay } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -14,25 +13,20 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
 
-    // Resuelve los valores en el orden en el cual se van emitiendo en el stream.
-    const fork = forkJoin([
-      of('Hola'),
-      of('¿Qué tal estamos?').pipe(delay(500)),
-      interval(2000).pipe(take(3)),
-      interval(1000).pipe(take(2))
-    ]);
+    const source = of(2000, 1000, 3000);
 
-    fork.subscribe(console.log);
-
-    // ForkJoin Puede servirnos para componer un diccionario de recursos.
-    const src = forkJoin(
-      {
-        google: ajax.getJSON('https://api.github.com/users/google'),
-        microsoft: ajax.getJSON('https://api.github.com/users/microsoft'),
-        balsalobre: ajax.getJSON('https://api.github.com/users/balsalobre'),
-      }
+    const obsConcatMap = source.pipe(
+      concatMap(data => of(`Valor: ${data}`).pipe(delay(data)))
     );
 
-    src.subscribe(console.log);
+    obsConcatMap.subscribe(console.log);
+
+    /** La diferencia principal que hay con concat es que concat
+     *  concatena observables y concatMap concaterna lo que son los
+     *  streams y permite mapearlos.
+     *
+     * Fuerza y orden y concatena los datos util para por ejemplo
+     * 3 peticiones HTTP.
+     */
   }
 }
