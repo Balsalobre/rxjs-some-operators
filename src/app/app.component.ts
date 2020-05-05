@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { of } from 'rxjs';
-import { concatMap, delay } from 'rxjs/operators';
+import { ajax } from 'rxjs/ajax';
+import { mergeMap, delay } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -13,20 +14,28 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
 
-    const source = of(2000, 1000, 3000);
+    const source = of(1000, 2000, 3000);
 
-    const obsConcatMap = source.pipe(
-      concatMap(data => of(`Valor: ${data}`).pipe(delay(data)))
+    const obsMergeMap = source.pipe(
+      mergeMap(data => of(`Valor: ${data}`).pipe(delay(data)))
     );
 
-    obsConcatMap.subscribe(console.log);
+    obsMergeMap.subscribe(console.log);
 
-    /** La diferencia principal que hay con concat es que concat
-     *  concatena observables y concatMap concaterna lo que son los
-     *  streams y permite mapearlos.
-     *
-     * Fuerza y orden y concatena los datos util para por ejemplo
-     * 3 peticiones HTTP.
+    /** A diferencia de concatMap ahora el observable va a emitir
+     *  antes el que primero se resuelva como siendo el primero 1000,
+     *  que es el que tiene el menor delay.
      */
+
+    const source2 = of(
+      ajax.getJSON('http://api.github.com/users/balsalobre'),
+      ajax.getJSON('http://api.github.com/users/google'),
+    );
+
+    const obsMergeMap2 = source2.pipe(
+      mergeMap(data => data)
+    );
+
+    obsMergeMap2.subscribe(console.log);
   }
 }
