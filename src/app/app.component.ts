@@ -39,6 +39,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       subcriber.next();
     });
 
+    // Cada segundo envía un valor de menos 1
     const obsInterval = interval(1000).pipe(mapTo(-1));
     const pause = fromEvent(this.pauseButton.nativeElement, 'click').pipe(mapTo(false));
     const resume = fromEvent(this.resumeButton.nativeElement, 'click').pipe(mapTo(true));
