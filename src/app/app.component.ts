@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { of } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
 import { ajax } from 'rxjs/ajax';
 import { mergeMap, delay } from 'rxjs/operators';
+import { ObsService } from './services/obs.service';
 
 @Component({
   selector: 'app-root',
@@ -10,32 +11,25 @@ import { mergeMap, delay } from 'rxjs/operators';
 })
 export class AppComponent implements OnInit {
 
-  constructor() { }
+  constructor(private obsService: ObsService) { }
 
   ngOnInit(): void {
+    // this.obsService.getGithuUser('balsalobre').subscribe( data => {
+    //   console.log(data);
+    // });
 
-    const source = of(1000, 2000, 3000);
+    const obsForkJoin = forkJoin([
+      this.obsService.getGithuUser('balsalobre'),
+      this.obsService.getGithuUser('odoo'),
+      this.obsService.getGithuUser('angular')
+    ]);
 
-    const obsMergeMap = source.pipe(
-      mergeMap(data => of(`Valor: ${data}`).pipe(delay(data)))
+    obsForkJoin.subscribe(console.log);
+
+    const obsMergeMap = this.obsService.getGithuUser('balsalobre').pipe(
+      mergeMap(data => ajax(data.blog))
     );
 
-    obsMergeMap.subscribe(console.log);
-
-    /** A diferencia de concatMap ahora el observable va a emitir
-     *  antes el que primero se resuelva como siendo el primero 1000,
-     *  que es el que tiene el menor delay.
-     */
-
-    const source2 = of(
-      ajax.getJSON('http://api.github.com/users/balsalobre'),
-      ajax.getJSON('http://api.github.com/users/google'),
-    );
-
-    const obsMergeMap2 = source2.pipe(
-      mergeMap(data => data)
-    );
-
-    obsMergeMap2.subscribe(console.log);
+    obsMergeMap.subscribe(data => console.log(data.status));
   }
 }
