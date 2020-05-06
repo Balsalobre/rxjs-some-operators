@@ -1,8 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { forkJoin, of } from 'rxjs';
-import { ajax } from 'rxjs/ajax';
-import { mergeMap, delay } from 'rxjs/operators';
-import { ObsService } from './services/obs.service';
+import { of } from 'rxjs';
+import { scan, delay, takeLast } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -11,25 +9,12 @@ import { ObsService } from './services/obs.service';
 })
 export class AppComponent implements OnInit {
 
-  constructor(private obsService: ObsService) { }
+  constructor() { }
 
   ngOnInit(): void {
-    // this.obsService.getGithuUser('balsalobre').subscribe( data => {
-    //   console.log(data);
-    // });
+    const src = of(1, 2, 3, 4, 5, 6).pipe(delay(1000));
+    const scanObs = src.pipe(scan((acc, curr) => [...acc, curr], []));
 
-    const obsForkJoin = forkJoin([
-      this.obsService.getGithuUser('balsalobre'),
-      this.obsService.getGithuUser('odoo'),
-      this.obsService.getGithuUser('angular')
-    ]);
-
-    obsForkJoin.subscribe(console.log);
-
-    const obsMergeMap = this.obsService.getGithuUser('balsalobre').pipe(
-      mergeMap(data => ajax(data.blog))
-    );
-
-    obsMergeMap.subscribe(data => console.log(data.status));
+    scanObs.pipe(takeLast(1)).subscribe(console.log);
   }
 }
